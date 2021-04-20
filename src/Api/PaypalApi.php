@@ -37,10 +37,22 @@ class PaypalApi
                     'amount' => [
                         'currency_code' => $currency,
                         'value' => $amount
-                    ]
+                    ],
+                    // 'shipping' => [
+                    //     'address' => [
+                    //         'address_line_1' => '123 Townsend St',
+                    //         'address_line_2' => 'Floor 6',
+                    //         'admin_area_2' => 'San Francisco',
+                    //         'admin_area_1' => 'CA',
+                    //         'postal_code' => '94107',
+                    //         'country_code' => 'US',
+                    //     ],
+                    // ],
                 ]
             ]
         ];
+
+        \Log::channel('paypal')->debug('PayPalOrdersCreateRequest', $orderCreateRequest->body);
 
         $response = $this->client->execute($orderCreateRequest);
 

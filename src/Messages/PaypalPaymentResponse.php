@@ -15,10 +15,15 @@ declare(strict_types=1);
 namespace Vanilo\Paypal\Messages;
 
 use Illuminate\Http\Request;
+use Konekt\Enum\Enum;
 use Vanilo\Payment\Contracts\PaymentResponse;
+use Vanilo\Payment\Contracts\PaymentStatus;
+use Vanilo\Payment\Models\PaymentStatusProxy;
 use Vanilo\Paypal\Api\PaypalApi;
 use Vanilo\Paypal\Concerns\HasPaypalCredentials;
-use Vanilo\Paypal\Models\OrderStatus;
+
+use Vanilo\Paypal\Models\PayPalPaymentStatus;
+
 
 class PaypalPaymentResponse implements PaymentResponse
 {
@@ -28,7 +33,8 @@ class PaypalPaymentResponse implements PaymentResponse
 
     private string $paymentId;
 
-    private OrderStatus $status;
+    private PaymentStatus $status;
+    private PayPalPaymentStatus $nativeStatus;
 
     private ?float $amountPaid = null;
 
@@ -44,7 +50,7 @@ class PaypalPaymentResponse implements PaymentResponse
 
     public function wasSuccessful(): bool
     {
-        return $this->status->equals(OrderStatus::COMPLETED());
+        return $this->nativeStatus->equals(PayPalPaymentStatus::COMPLETED());
     }
 
     public function getMessage(): string
@@ -73,7 +79,25 @@ class PaypalPaymentResponse implements PaymentResponse
         $token = $this->request->token;
 
         $captureResponse = (new PaypalApi($this->clientId, $this->secret, $this->isSandbox))->captureOrder($token);
-        $this->status = new OrderStatus($captureResponse->result->status);
+
+        $this->nativeStatus = new PayPalPaymentStatus($captureResponse->result->status);
+
+        if ($this->wasSuccessful()) {
+            $this->status = PaymentStatusProxy::AUTHORIZED();
+        } else {
+            $this->status = PaymentStatusProxy::DECLINED();
+        }
+
         $this->amountPaid = floatval($captureResponse->result->purchase_units[0]->payments->captures[0]->amount->value);
+    }
+
+    public function getStatus(): PaymentStatus
+    {
+        return $this->status;
+    }
+
+    public function getNativeStatus(): PayPalPaymentStatus
+    {
+        return $this->nativeStatus;
     }
 }
