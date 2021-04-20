@@ -52,6 +52,9 @@ class PaypalApi
             ]
         ];
 
+        \Log::channel('paypal')->debug('PaypalApi->createOrder', $amount);
+        \Log::channel('paypal')->debug('PaypalApi->createOrder(rounded)', round($amount, 2));
+
         \Log::channel('paypal')->debug('PayPalOrdersCreateRequest', $orderCreateRequest->body);
 
         $response = $this->client->execute($orderCreateRequest);
