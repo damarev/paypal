@@ -36,7 +36,7 @@ class PaypalApi
                 [
                     'amount' => [
                         'currency_code' => $currency,
-                        'value' => $amount
+                        'value' => number_format($amount, 2, '.', ''),
                     ],
                     // 'shipping' => [
                     //     'address' => [
@@ -55,7 +55,6 @@ class PaypalApi
         \Log::channel('paypal')->debug('PaypalApi->createOrder', ['amount'=>$amount]);
         \Log::channel('paypal')->debug('PaypalApi->createOrder(rounded)', ['amount'=>round($amount, 2)]);
         \Log::channel('paypal')->debug('PaypalApi->createOrder(number_format)', ['amount'=>number_format($amount, 2, '.', '')]);
-
         \Log::channel('paypal')->debug('PayPalOrdersCreateRequest', $orderCreateRequest->body);
 
         $response = $this->client->execute($orderCreateRequest);
