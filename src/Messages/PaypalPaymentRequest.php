@@ -34,6 +34,9 @@ class PaypalPaymentRequest implements PaymentRequest
     public function getHtmlSnippet(array $options = []): ?string
     {
         $api = new PaypalApi($this->clientId, $this->secret, $this->isSandbox);
+
+        \Log::channel('paypal')->debug('PaypalPaymentRequest->getHtmlSnippet', ['$this->amount'=>$this->amount]);
+
         $approveUrl = $api->createOrder($this->currency, $this->amount, $this->returnUrl, $this->cancelUrl);
 
         return View::make(
@@ -104,6 +107,7 @@ class PaypalPaymentRequest implements PaymentRequest
 
     public function setAmount(float $amount): self
     {
+        \Log::channel('paypal')->debug('PaypalPaymentRequest->setAmount', ['$amount'=>$amount]);
         $this->amount = $amount;
 
         return $this;

@@ -28,6 +28,8 @@ final class RequestFactory
     {
         $result = new PaypalPaymentRequest();
 
+        \Log::channel('paypal')->debug('RequestFactory->create', ['$payment->getAmount()'=>$payment->getAmount()]);
+
         $result
             ->setPaymentId($payment->getPaymentId())
             ->setCurrency($payment->getCurrency())
