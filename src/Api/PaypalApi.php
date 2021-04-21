@@ -10,6 +10,7 @@ use PayPalCheckoutSdk\Core\SandboxEnvironment;
 use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;
 use PayPalCheckoutSdk\Orders\OrdersCreateRequest;
 use PayPalHttp\HttpResponse;
+use Vanilo\Contracts\Address;
 
 class PaypalApi
 {
@@ -22,7 +23,7 @@ class PaypalApi
         $this->client = new PayPalHttpClient($env);
     }
 
-    public function createOrder(string $currency, float $amount, string $returnUrl, string $cancelUrl): string
+    public function createOrder(string $currency, float $amount, Address $shippingAddress, string $returnUrl, string $cancelUrl): string
     {
         $orderCreateRequest = new OrdersCreateRequest();
         $orderCreateRequest->prefer('return=representation');
@@ -30,7 +31,8 @@ class PaypalApi
             'intent' => 'CAPTURE',
             'application_context' => [
                 'return_url' => $returnUrl,
-                'cancel_url' => $cancelUrl
+                'cancel_url' => $cancelUrl,
+                'shipping_preference' => 'NO_SHIPPING',
             ],
             'purchase_units' => [
                 [
@@ -40,21 +42,18 @@ class PaypalApi
                     ],
                     // 'shipping' => [
                     //     'address' => [
-                    //         'address_line_1' => '123 Townsend St',
-                    //         'address_line_2' => 'Floor 6',
-                    //         'admin_area_2' => 'San Francisco',
-                    //         'admin_area_1' => 'CA',
-                    //         'postal_code' => '94107',
-                    //         'country_code' => 'US',
+                    //         'address_line_1' => $shippingAddress->getAddress(),
+                    //         'address_line_2' => '',
+                    //         'admin_area_2' => $shippingAddress->getCity(),
+                    //         'admin_area_1' => '',
+                    //         'postal_code' => $shippingAddress->getPostalCode(),
+                    //         'country_code' => $shippingAddress->getCountryCode(),
                     //     ],
                     // ],
                 ]
             ]
         ];
 
-        \Log::channel('paypal')->debug('PaypalApi->createOrder', ['amount'=>$amount]);
-        \Log::channel('paypal')->debug('PaypalApi->createOrder(rounded)', ['amount'=>round($amount, 2)]);
-        \Log::channel('paypal')->debug('PaypalApi->createOrder(number_format)', ['amount'=>number_format($amount, 2, '.', '')]);
         \Log::channel('paypal')->debug('PayPalOrdersCreateRequest', $orderCreateRequest->body);
 
         $response = $this->client->execute($orderCreateRequest);

@@ -49,7 +49,7 @@ class PaypalPaymentGateway implements PaymentGateway
             );
         }
 
-        return $this->requestFactory->create($payment, $options);
+        return $this->requestFactory->create($payment, $shippingAddress, $options);
     }
 
     public function processPaymentResponse(Request $request, array $options = []): PaymentResponse

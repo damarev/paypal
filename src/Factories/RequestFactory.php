@@ -18,17 +18,16 @@ use Vanilo\Payment\Contracts\Payment;
 use Vanilo\Payment\Support\ReplacesPaymentUrlParameters;
 use Vanilo\Paypal\Concerns\HasPaypalInteraction;
 use Vanilo\Paypal\Messages\PaypalPaymentRequest;
+use Vanilo\Contracts\Address;
 
 final class RequestFactory
 {
     use HasPaypalInteraction;
     use ReplacesPaymentUrlParameters;
 
-    public function create(Payment $payment, array $options = []): PaypalPaymentRequest
+    public function create(Payment $payment, Address $shippingAddress, array $options = []): PaypalPaymentRequest
     {
         $result = new PaypalPaymentRequest();
-
-        \Log::channel('paypal')->debug('RequestFactory->create', ['$payment->getAmount()'=>$payment->getAmount()]);
 
         $result
             ->setPaymentId($payment->getPaymentId())
@@ -37,6 +36,7 @@ final class RequestFactory
             ->setClientId($this->clientId)
             ->setSecret($this->secret)
             ->setIsSandbox($this->isSandbox)
+            ->setShippingAddress($shippingAddress)
             ->setReturnUrl(
                 $this->replaceUrlParameters(
                     $options['return_url'] ?? $this->returnUrl,

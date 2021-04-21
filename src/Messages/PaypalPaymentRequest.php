@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\View;
 use Vanilo\Payment\Contracts\PaymentRequest;
 use Vanilo\Paypal\Api\PaypalApi;
 use Vanilo\Paypal\Concerns\HasPaypalConfiguration;
+use Vanilo\Contracts\Address;
 
 class PaypalPaymentRequest implements PaymentRequest
 {
@@ -29,15 +30,15 @@ class PaypalPaymentRequest implements PaymentRequest
 
     private float $amount;
 
+    private Address $shippingAddress;
+
     private string $view = 'paypal::_request';
 
     public function getHtmlSnippet(array $options = []): ?string
     {
         $api = new PaypalApi($this->clientId, $this->secret, $this->isSandbox);
 
-        \Log::channel('paypal')->debug('PaypalPaymentRequest->getHtmlSnippet', ['$this->amount'=>$this->amount]);
-
-        $approveUrl = $api->createOrder($this->currency, $this->amount, $this->returnUrl, $this->cancelUrl);
+        $approveUrl = $api->createOrder($this->currency, $this->amount, $this->shippingAddress, $this->returnUrl, $this->cancelUrl);
 
         return View::make(
             $this->view,
@@ -67,6 +68,13 @@ class PaypalPaymentRequest implements PaymentRequest
         return $this;
     }
 
+    public function setShippingAddress(Address $shippingAddress): self
+    {
+        $this->shippingAddress = $shippingAddress;
+
+        return $this;
+    }
+
     public function setReturnUrl(string $returnUrl): self
     {
         $this->returnUrl = $returnUrl;
@@ -91,7 +99,7 @@ class PaypalPaymentRequest implements PaymentRequest
         return $this->cancelUrl;
     }
 
-    public function setIsSandbox(bool $isSandbox): PaypalPaymentRequest
+    public function setIsSandbox(bool $isSandbox): self
     {
         $this->isSandbox = $isSandbox;
 
@@ -107,7 +115,6 @@ class PaypalPaymentRequest implements PaymentRequest
 
     public function setAmount(float $amount): self
     {
-        \Log::channel('paypal')->debug('PaypalPaymentRequest->setAmount', ['$amount'=>$amount]);
         $this->amount = $amount;
 
         return $this;
